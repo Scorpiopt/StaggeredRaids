@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -15,8 +15,6 @@ namespace StaggeredRaids
         {
             if (parms.target is Map map)
             {
-                if (parms.raidStrategy != null && (parms.raidStrategy.defName == "Siege" || parms.raidStrategy.defName == "PsychicRitualSiege"))
-                    return true;
                 PawnGroupMaker groupMaker = parms.faction.def.pawnGroupMakers.FirstOrDefault(
                     x => x.kindDef == PawnGroupKindDefOf.Combat);
 
