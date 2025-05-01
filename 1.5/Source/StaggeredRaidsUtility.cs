@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using RimWorld;
 using Verse;
 
@@ -39,6 +39,7 @@ namespace StaggeredRaids
 
         public static void ProcessRaidWaves(Map map)
         {
+            pendingRaidWaves ??= new Dictionary<Map, RaidGroup>();
             if (!pendingRaidWaves.ContainsKey(map) || pendingRaidWaves[map].waves.Count == 0)
                 return;
 
