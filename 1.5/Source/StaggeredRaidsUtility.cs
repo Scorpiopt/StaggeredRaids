@@ -112,6 +112,10 @@ namespace StaggeredRaids
             raidGroupValues = raidGroupValues ?? new List<RaidGroup>();
 
             Scribe_Collections.Look(ref pendingRaidWaves, "pendingRaidWaves", LookMode.Reference, LookMode.Deep, ref mapKeys, ref raidGroupValues);
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            {
+                pendingRaidWaves ??= new Dictionary<Map, RaidGroup>();
+            }
         }
 
         private static List<Map> mapKeys;
