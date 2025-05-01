@@ -79,9 +79,8 @@ namespace StaggeredRaids
                 RaidWaveInfo wave = waves[i];
                 if (wave.ticksUntilNextWave == 0)
                 {
-                    bool result = IncidentDefOf.RaidEnemy.Worker.TryExecute(wave.parms);
+                    bool result = wave.def.Worker.TryExecute(wave.parms);
                     waves.RemoveAt(i);
-
                     return result;
                 }
             }

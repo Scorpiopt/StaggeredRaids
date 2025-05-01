@@ -8,10 +8,10 @@ using Verse;
 
 namespace StaggeredRaids
 {
-    [HarmonyPatch(typeof(IncidentWorker_RaidEnemy), "TryExecuteWorker")]
-    public static class IncidentWorker_RaidEnemy_TryExecuteWorker_Patch
+    [HarmonyPatch(typeof(IncidentWorker_Raid), "TryExecuteWorker")]
+    public static class IncidentWorker_Raid_TryExecuteWorker_Patch
     {
-        public static bool Prefix(IncidentWorker_RaidEnemy __instance, IncidentParms parms, ref bool __result)
+        public static bool Prefix(IncidentWorker_Raid __instance, IncidentParms parms, ref bool __result)
         {
             if (parms.target is Map map)
             {
@@ -34,7 +34,7 @@ namespace StaggeredRaids
                 {
                     return true;
                 }
-                parms.points = IncidentWorker_RaidEnemy.AdjustedRaidPoints(parms.points, parms.raidArrivalMode, parms.raidStrategy, parms.faction, groupKind, parms.raidAgeRestriction);
+                parms.points = IncidentWorker_Raid.AdjustedRaidPoints(parms.points, parms.raidArrivalMode, parms.raidStrategy, parms.faction, groupKind, parms.raidAgeRestriction);
 
                 PawnGroupMaker groupMaker = parms.faction.def.pawnGroupMakers.FirstOrDefault(
                     x => x.kindDef == PawnGroupKindDefOf.Combat);
