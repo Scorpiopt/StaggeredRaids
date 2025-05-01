@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ModMetaData>
+    <name>Staggered Raids</name>
+    <author>Scorpio</author>
+    <packageId>Scorpio.StaggeredRaids</packageId>
+    <description>This mod changes big raids to be split into smaller ones, sent one by one after a specific time. Sieges are not affected.</description>
+    <supportedVersions>
+        <li>1.5</li>
+    </supportedVersions>
+    <loadAfter>
+        <li>Ludeon.RimWorld</li>
+        <li>Ludeon.RimWorld.Royalty</li>
+        <li>Ludeon.RimWorld.Biotech</li>
+        <li>Ludeon.RimWorld.Anomaly</li>
+        <li>brrainz.harmony</li>
+    </loadAfter>
+</ModMetaData>
