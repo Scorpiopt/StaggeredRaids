@@ -15,13 +15,33 @@ namespace StaggeredRaids
         {
             if (parms.target is Map map)
             {
+                if (parms.faction is null && __instance.TryResolveRaidFaction(parms) is false)
+                {
+                    Log.Error("Could not resolve raid faction.");
+                    return true;
+                }
+
+                __instance.ResolveRaidPoints(parms);
+                if (!__instance.TryResolveRaidFaction(parms))
+                {
+                    return true;
+                }
+                PawnGroupKindDef groupKind = parms.pawnGroupKind ?? PawnGroupKindDefOf.Combat;
+                __instance.ResolveRaidStrategy(parms, groupKind);
+                __instance.ResolveRaidArriveMode(parms);
+                __instance.ResolveRaidAgeRestriction(parms);
+                if (!parms.raidArrivalMode.Worker.TryResolveRaidSpawnCenter(parms))
+                {
+                    return true;
+                }
+                parms.points = IncidentWorker_RaidEnemy.AdjustedRaidPoints(parms.points, parms.raidArrivalMode, parms.raidStrategy, parms.faction, groupKind, parms.raidAgeRestriction);
+
                 PawnGroupMaker groupMaker = parms.faction.def.pawnGroupMakers.FirstOrDefault(
                     x => x.kindDef == PawnGroupKindDefOf.Combat);
 
                 if (groupMaker == null)
                     return true;
 
-                float points = parms.points;
                 float totalCost = 0f;
                 int optionCount = 0;
                 foreach (PawnGenOption option in groupMaker.options)
@@ -30,10 +50,10 @@ namespace StaggeredRaids
                     optionCount++;
                 }
                 float averageCost = totalCost / optionCount;
-                int numRaiders = Mathf.RoundToInt(points / averageCost);
+                int numRaiders = Mathf.RoundToInt(parms.points / averageCost);
                 if (numRaiders > StaggeredRaidsUtility.MaxRaidersPerWave)
                 {
-                    StaggeredRaidsUtility.AddRaidWaves(map, parms, numRaiders);
+                    StaggeredRaidsUtility.AddRaidWaves(map, __instance.def, parms, numRaiders);
                     __result = StaggeredRaidsUtility.ExecuteFirstWave(map);
                     return false;
                 }

@@ -10,7 +10,7 @@ namespace StaggeredRaids
         public static int TicksBetweenWaves => (int)(StaggeredRaidsMod.settings.hoursBetweenWaves * GenDate.TicksPerHour);
         public static int MaxRaidersPerWave => StaggeredRaidsMod.settings.maxRaidersPerWave;
 
-        public static void AddRaidWaves(Map map, IncidentParms originalParms, int totalRaiders)
+        public static void AddRaidWaves(Map map, IncidentDef def, IncidentParms originalParms, int totalRaiders)
         {
             if (!pendingRaidWaves.ContainsKey(map))
             {
@@ -32,8 +32,7 @@ namespace StaggeredRaids
                     points = originalParms.points * ((float)waveSize / totalRaiders)
                 };
                 int delay = i * TicksBetweenWaves;
-
-                pendingRaidWaves[map].waves.Add(new RaidWaveInfo(waveParms, delay));
+                pendingRaidWaves[map].waves.Add(new RaidWaveInfo(def, waveParms, delay));
             }
         }
 
@@ -66,7 +65,7 @@ namespace StaggeredRaids
 
         private static void ExecuteRaidWave(RaidWaveInfo wave)
         {
-            IncidentDefOf.RaidEnemy.Worker.TryExecute(wave.parms);
+            wave.def.Worker.TryExecute(wave.parms);
         }
 
         public static bool ExecuteFirstWave(Map map)
