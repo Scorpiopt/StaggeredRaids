@@ -7,9 +7,8 @@ namespace StaggeredRaids
     public static class StaggeredRaidsUtility
     {
         public static Dictionary<Map, RaidGroup> pendingRaidWaves = new Dictionary<Map, RaidGroup>();
-        public const int TicksBetweenWaves = 3 * GenDate.TicksPerHour;
-        public const int MaxRaidersPerWave = 25;
-        public const int RaidSplitThreshold = 50;
+        public static int TicksBetweenWaves => (int)(StaggeredRaidsMod.settings.hoursBetweenWaves * GenDate.TicksPerHour);
+        public static int MaxRaidersPerWave => StaggeredRaidsMod.settings.maxRaidersPerWave;
 
         public static void AddRaidWaves(Map map, IncidentParms originalParms, int totalRaiders)
         {

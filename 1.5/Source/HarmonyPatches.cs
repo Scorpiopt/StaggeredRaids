@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -33,8 +33,7 @@ namespace StaggeredRaids
                 }
                 float averageCost = totalCost / optionCount;
                 int numRaiders = Mathf.RoundToInt(points / averageCost);
-
-                if (numRaiders >= StaggeredRaidsUtility.RaidSplitThreshold)
+                if (numRaiders > StaggeredRaidsUtility.MaxRaidersPerWave)
                 {
                     StaggeredRaidsUtility.AddRaidWaves(map, parms, numRaiders);
                     __result = StaggeredRaidsUtility.ExecuteFirstWave(map);
