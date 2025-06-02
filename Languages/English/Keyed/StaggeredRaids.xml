@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  <StaggeredRaids.RaidSplitNotification>Raid Alert: The enemy has split their forces! Prepare for staggered waves of attacks. Stay sharp and hold the line!</StaggeredRaids.RaidSplitNotification>
+  <StaggeredRaids.RaidWavesAlert>Raid Update: {0} waves remaining!</StaggeredRaids.RaidWavesAlert>
+  <StaggeredRaids.RaidWavesAlertDesc>Enemy forces are approaching in waves. Prepare your defenses for the next assault. Stay vigilant and repel the enemy's staggered assaults!</StaggeredRaids.RaidWavesAlertDesc>
+</LanguageData>

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -113,6 +113,10 @@ namespace StaggeredRaids
                     }
 
                     StaggeredRaidsUtility.pendingRaidWaves[map].waves.Add(new RaidWaveInfo(__instance.def, waveParms, delay));
+                }
+                if (numWaves > 1)
+                {
+                    StaggeredRaidsUtility.ShowEntitySwarmNotification(map, numWaves);
                 }
             }
         }

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using UnityEngine;
@@ -36,6 +36,43 @@ namespace StaggeredRaids
                 int delay = i * TicksBetweenWaves;
                 pendingRaidWaves[map].waves.Add(new RaidWaveInfo(def, waveParms, delay));
             }
+            ShowRaidSplitNotification(map, numWaves);
+        }
+
+        private static void ShowRaidSplitNotification(Map map, int numWaves)
+        {
+            if (!pendingRaidWaves.ContainsKey(map))
+                return;
+
+            RaidGroup raidGroup = pendingRaidWaves[map];
+            if (!raidGroup.initialNotificationShown)
+            {
+                raidGroup.initialNotificationShown = true;
+                if (map.IsPlayerHome)
+                {
+                    Messages.Message("StaggeredRaids.RaidSplitNotification".Translate(),
+                        MessageTypeDefOf.ThreatBig, false);
+                }
+                StaggeredRaidsAlertManager.EnsureAlertRegistered();
+            }
+        }
+
+        public static void ShowEntitySwarmNotification(Map map, int numWaves)
+        {
+            if (!pendingRaidWaves.ContainsKey(map))
+                return;
+
+            RaidGroup raidGroup = pendingRaidWaves[map];
+            if (!raidGroup.initialNotificationShown)
+            {
+                raidGroup.initialNotificationShown = true;
+                if (map.IsPlayerHome)
+                {
+                    Messages.Message("StaggeredRaids.RaidSplitNotification".Translate(),
+                        MessageTypeDefOf.ThreatBig, false);
+                }
+                StaggeredRaidsAlertManager.EnsureAlertRegistered();
+            }
         }
 
         public static void ProcessRaidWaves(Map map)
@@ -62,6 +99,10 @@ namespace StaggeredRaids
             {
                 ExecuteRaidWave(nextWave);
                 waves.RemoveAt(nextWaveIndex);
+                if (waves.Count == 0)
+                {
+                    pendingRaidWaves.Remove(map);
+                }
             }
         }
 
