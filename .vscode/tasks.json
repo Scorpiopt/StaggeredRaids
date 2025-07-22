@@ -13,7 +13,7 @@
             "command": "dotnet",
             "args": [
                 "build",
-                "${workspaceFolder}/1.5/Source/StaggeredRaids.csproj"
+                "${workspaceFolder}/1.6/Source/StaggeredRaids.csproj"
             ],
             "problemMatcher": "$msCompile",
             "group": {
