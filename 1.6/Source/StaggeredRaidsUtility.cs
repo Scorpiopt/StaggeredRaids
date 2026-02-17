@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using UnityEngine;
@@ -11,15 +11,15 @@ namespace StaggeredRaids
         public static Dictionary<Map, RaidGroup> pendingRaidWaves = new Dictionary<Map, RaidGroup>();
         public static int TicksBetweenWaves => (int)(StaggeredRaidsMod.settings.hoursBetweenWaves * GenDate.TicksPerHour);
         public static int MaxRaidersPerWave => StaggeredRaidsMod.settings.maxRaidersPerWave;
+        public static HashSet<IncidentParms> processingParms = new HashSet<IncidentParms>();
 
-        public static void AddRaidWaves(Map map, IncidentDef def, IncidentParms originalParms, int totalRaiders)
+        public static void AddRaidWaves(Map map, IncidentDef def, IncidentParms originalParms, int totalRaiders, PawnsArrivalModeDef arrivalMode, RaidStrategyDef raidStrategy)
         {
             if (!pendingRaidWaves.ContainsKey(map))
             {
                 pendingRaidWaves[map] = new RaidGroup();
             }
             int numWaves = (int)System.Math.Ceiling((float)totalRaiders / MaxRaidersPerWave);
-
             for (int i = 0; i < numWaves; i++)
             {
                 int remainingRaiders = totalRaiders - (i * MaxRaidersPerWave);
@@ -28,13 +28,13 @@ namespace StaggeredRaids
                 {
                     target = originalParms.target,
                     faction = originalParms.faction,
-                    raidStrategy = originalParms.raidStrategy,
-                    raidArrivalMode = originalParms.raidArrivalMode,
+                    raidStrategy = raidStrategy,
+                    raidArrivalMode = arrivalMode,
                     forced = originalParms.forced,
                     points = originalParms.points * ((float)waveSize / totalRaiders)
                 };
                 int delay = i * TicksBetweenWaves;
-                pendingRaidWaves[map].waves.Add(new RaidWaveInfo(def, waveParms, delay));
+                pendingRaidWaves[map].waves.Add(new RaidWaveInfo(def, waveParms, delay, arrivalMode, raidStrategy));
             }
             ShowRaidSplitNotification(map, numWaves);
         }
@@ -53,7 +53,6 @@ namespace StaggeredRaids
                     Messages.Message("StaggeredRaids.RaidSplitNotification".Translate(),
                         MessageTypeDefOf.ThreatBig, false);
                 }
-                StaggeredRaidsAlertManager.EnsureAlertRegistered();
             }
         }
 
@@ -71,7 +70,6 @@ namespace StaggeredRaids
                     Messages.Message("StaggeredRaids.RaidSplitNotification".Translate(),
                         MessageTypeDefOf.ThreatBig, false);
                 }
-                StaggeredRaidsAlertManager.EnsureAlertRegistered();
             }
         }
 
@@ -108,7 +106,23 @@ namespace StaggeredRaids
 
         private static void ExecuteRaidWave(RaidWaveInfo wave)
         {
-            wave.def.Worker.TryExecute(wave.parms);
+            if (wave.arrivalMode != null)
+            {
+                wave.parms.raidArrivalMode = wave.arrivalMode;
+            }
+            if (wave.raidStrategy != null)
+            {
+                wave.parms.raidStrategy = wave.raidStrategy;
+            }
+            processingParms.Add(wave.parms);
+            try
+            {
+                wave.def.Worker.TryExecute(wave.parms);
+            }
+            finally
+            {
+                processingParms.Remove(wave.parms);
+            }
         }
 
         public static bool ExecuteFirstWave(Map map)
@@ -122,7 +136,27 @@ namespace StaggeredRaids
                 RaidWaveInfo wave = waves[i];
                 if (wave.ticksUntilNextWave == 0)
                 {
-                    bool result = wave.def.Worker.TryExecute(wave.parms);
+                    processingParms.Add(wave.parms);
+                    bool result;
+                    try
+                    {
+                        result = wave.def.Worker.TryExecute(wave.parms);
+                    }
+                    finally
+                    {
+                        processingParms.Remove(wave.parms);
+                    }
+                    PawnsArrivalModeDef arrivalMode = wave.parms.raidArrivalMode;
+                    RaidStrategyDef raidStrategy = wave.parms.raidStrategy;                    
+                    for (int j = 0; j < waves.Count; j++)
+                    {
+                        if (j != i && waves[j].parms.faction == wave.parms.faction)
+                        {
+                            waves[j].arrivalMode = arrivalMode;
+                            waves[j].raidStrategy = raidStrategy;
+                        }
+                    }
+
                     waves.RemoveAt(i);
                     return result;
                 }

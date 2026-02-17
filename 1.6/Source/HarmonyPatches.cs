@@ -3,34 +3,21 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
-using StaggeredRaids;
 using UnityEngine;
 using Verse;
 
 namespace StaggeredRaids
 {
-    [HarmonyPatch(typeof(IncidentWorker_Raid), "ResolveRaidArriveMode")]
-    public static class IncidentWorker_Raid_ResolveRaidArriveMode_Patch
-    {
-        public static void Prefix(IncidentParms parms, ref PawnsArrivalModeDef __state)
-        {
-            __state = parms.raidArrivalMode;
-        }
-
-        public static void Postfix(IncidentParms parms, PawnsArrivalModeDef __state)
-        {
-            if (__state != null && parms.raidArrivalMode == PawnsArrivalModeDefOf.EdgeWalkIn)
-            {
-                parms.raidArrivalMode = __state;
-            }
-        }
-    }
-
     [HarmonyPatch(typeof(IncidentWorker_Raid), "TryExecuteWorker")]
     public static class IncidentWorker_Raid_TryExecuteWorker_Patch
     {
         public static bool Prefix(IncidentWorker_Raid __instance, IncidentParms parms, ref bool __result)
         {
+            if (StaggeredRaidsUtility.processingParms.Contains(parms))
+            {
+                return true;
+            }
+
             if (parms.target is Map map)
             {
                 __instance.ResolveRaidPoints(parms);
@@ -39,8 +26,6 @@ namespace StaggeredRaids
                     return true;
                 }
                 PawnGroupKindDef groupKind = parms.pawnGroupKind ?? PawnGroupKindDefOf.Combat;
-                __instance.ResolveRaidStrategy(parms, groupKind);
-    
                 PawnGroupMaker groupMaker = parms.faction.def.pawnGroupMakers.FirstOrDefault(
                     x => x.kindDef == PawnGroupKindDefOf.Combat);
                 if (__instance is IncidentWorker_ShamblerAssault)
@@ -49,8 +34,10 @@ namespace StaggeredRaids
                     x => x.kindDef == PawnGroupKindDefOf.Shamblers);
                 }
                 if (groupMaker == null)
+                {
                     return true;
-    
+                }
+
                 float totalCost = 0f;
                 int optionCount = 0;
                 foreach (PawnGenOption option in groupMaker.options)
@@ -60,19 +47,18 @@ namespace StaggeredRaids
                 }
                 float averageCost = totalCost / optionCount;
                 int numRaiders = Mathf.RoundToInt(parms.points / averageCost);
+
                 if (numRaiders > StaggeredRaidsUtility.MaxRaidersPerWave)
                 {
-                    StaggeredRaidsUtility.AddRaidWaves(map, __instance.def, parms, numRaiders);
+                    StaggeredRaidsUtility.AddRaidWaves(map, __instance.def, parms, numRaiders, parms.raidArrivalMode, parms.raidStrategy);
                     __result = StaggeredRaidsUtility.ExecuteFirstWave(map);
                     return false;
                 }
+
             }
-    
             return true;
         }
     }
-
-
 
     [HarmonyPatch(typeof(IncidentWorker_EntitySwarm), "TryExecuteWorker")]
     public static class IncidentWorker_EntitySwarm_TryExecuteWorker_Patch
@@ -116,7 +102,7 @@ namespace StaggeredRaids
                         StaggeredRaidsUtility.pendingRaidWaves[map] = new RaidGroup();
                     }
 
-                    StaggeredRaidsUtility.pendingRaidWaves[map].waves.Add(new RaidWaveInfo(__instance.def, waveParms, delay));
+                    StaggeredRaidsUtility.pendingRaidWaves[map].waves.Add(new RaidWaveInfo(__instance.def, waveParms, delay, parms.raidArrivalMode, parms.raidStrategy));
                 }
                 if (numWaves > 1)
                 {

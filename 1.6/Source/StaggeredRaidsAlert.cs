@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
@@ -50,44 +50,6 @@ namespace StaggeredRaids
             }
 
             return AlertReport.Inactive;
-        }
-    }
-    public static class StaggeredRaidsAlertManager
-    {
-        private static bool alertRegistered = false;
-
-        public static void EnsureAlertRegistered()
-        {
-            if (!alertRegistered && Find.UIRoot != null)
-            {
-                try
-                {
-                    var uiRoot = Find.UIRoot;
-                    var alertsReadoutField = uiRoot.GetType().GetField("alertsReadout",
-                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-                    if (alertsReadoutField != null)
-                    {
-                        var alertsReadout = alertsReadoutField.GetValue(uiRoot);
-                        var alertsField = alertsReadout.GetType().GetField("alerts",
-                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-                        if (alertsField != null)
-                        {
-                            var alertsList = (List<Alert>)alertsField.GetValue(alertsReadout);
-                            if (alertsList != null && !alertsList.Any(a => a is Alert_StaggeredRaids))
-                            {
-                                alertsList.Add(Alert_StaggeredRaids.Instance);
-                                alertRegistered = true;
-                            }
-                        }
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    Log.Warning($"StaggeredRaids: Failed to register alert: {ex.Message}");
-                }
-            }
         }
     }
 }
