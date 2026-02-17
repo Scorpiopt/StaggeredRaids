@@ -9,6 +9,23 @@ using Verse;
 
 namespace StaggeredRaids
 {
+    [HarmonyPatch(typeof(IncidentWorker_Raid), "ResolveRaidArriveMode")]
+    public static class IncidentWorker_Raid_ResolveRaidArriveMode_Patch
+    {
+        public static void Prefix(IncidentParms parms, ref PawnsArrivalModeDef __state)
+        {
+            __state = parms.raidArrivalMode;
+        }
+
+        public static void Postfix(IncidentParms parms, PawnsArrivalModeDef __state)
+        {
+            if (__state != null && parms.raidArrivalMode == PawnsArrivalModeDefOf.EdgeWalkIn)
+            {
+                parms.raidArrivalMode = __state;
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(IncidentWorker_Raid), "TryExecuteWorker")]
     public static class IncidentWorker_Raid_TryExecuteWorker_Patch
     {
@@ -16,12 +33,6 @@ namespace StaggeredRaids
         {
             if (parms.target is Map map)
             {
-                if (parms.faction is null && __instance.TryResolveRaidFaction(parms) is false)
-                {
-                    Log.Error("Could not resolve raid faction.");
-                    return true;
-                }
-
                 __instance.ResolveRaidPoints(parms);
                 if (!__instance.TryResolveRaidFaction(parms))
                 {
@@ -29,14 +40,7 @@ namespace StaggeredRaids
                 }
                 PawnGroupKindDef groupKind = parms.pawnGroupKind ?? PawnGroupKindDefOf.Combat;
                 __instance.ResolveRaidStrategy(parms, groupKind);
-                __instance.ResolveRaidArriveMode(parms);
-                __instance.ResolveRaidAgeRestriction(parms);
-                if (!parms.raidArrivalMode.Worker.TryResolveRaidSpawnCenter(parms))
-                {
-                    return true;
-                }
-                parms.points = IncidentWorker_Raid.AdjustedRaidPoints(parms.points, parms.raidArrivalMode, parms.raidStrategy, parms.faction, groupKind, parms.target, parms.raidAgeRestriction);
-
+    
                 PawnGroupMaker groupMaker = parms.faction.def.pawnGroupMakers.FirstOrDefault(
                     x => x.kindDef == PawnGroupKindDefOf.Combat);
                 if (__instance is IncidentWorker_ShamblerAssault)
@@ -46,7 +50,7 @@ namespace StaggeredRaids
                 }
                 if (groupMaker == null)
                     return true;
-
+    
                 float totalCost = 0f;
                 int optionCount = 0;
                 foreach (PawnGenOption option in groupMaker.options)
@@ -63,7 +67,7 @@ namespace StaggeredRaids
                     return false;
                 }
             }
-
+    
             return true;
         }
     }
